@@ -40,6 +40,8 @@ INSTALLED_APPS = [
     # interanl apps 
     'blog',
     'api',
+    # external apps 
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
