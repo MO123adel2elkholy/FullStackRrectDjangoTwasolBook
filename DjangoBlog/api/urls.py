@@ -1,7 +1,10 @@
 
 from django.contrib import admin
-from django.urls import path
+from django.urls import path 
+
+from .views import PostList , PostDetail
 app_name='api'
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('post' , PostList.as_view() ,name='listcreate'),
+    path('post/<int:pk>' , PostDetail.as_view() ,name='detaildestroy'),
 ]
