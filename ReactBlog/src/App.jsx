@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import './App.css'
+import Posts from './components/Posts'
+import PostDataLoading from './components/PostDataLoading'
 
 function App() {
   const [posts, setPosts] = useState([])
@@ -29,18 +31,12 @@ function App() {
 
   return (
     <div>
-      <h1>AM Div</h1>
 
-      {loading && <p>Loading...</p>}
       {error && <p>Error: {error}</p>}
 
-      {!loading && !error && posts.length === 0 && <p>No posts found.</p>}
+      <PostDataLoading loading={loading} />
 
-      <ul>
-        {posts.map((post) => (
-          <li key={post.id}>{post.title}</li>
-        ))}
-      </ul>
+      {!loading && !error && <Posts posts={posts} />}
     </div>
   )
 }
