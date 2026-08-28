@@ -15,7 +15,7 @@ class PostChangPermission(BasePermission):
 class PostList(ListCreateAPIView):
     queryset = Post.postobjects.all()
     serializer_class = PostSerializer
-    permission_classes =[IsAuthenticatedOrReadOnly]
+    permission_classes =[IsAuthenticated]
 
 
 
