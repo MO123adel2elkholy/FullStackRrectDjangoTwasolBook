@@ -3,7 +3,6 @@ from django.utils import timezone
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
-
 # custome functiion for uploading posts to posts folder media in local development 
 def upload_to(instance, filename):
     return 'posts/{filename}'.format(filename=filename) 

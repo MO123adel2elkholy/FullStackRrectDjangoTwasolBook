@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     # interanl apps 
     'blog',
     'api',
+    'users',
     # external apps 
     'rest_framework',
     'corsheaders',
@@ -138,3 +139,5 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication'
     ],
 }
+
+AUTH_USER_MODEL = "users.NewUser"
