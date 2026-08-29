@@ -7,6 +7,7 @@ import Footer from './components/Footer.jsx';
 import Header from './components/Header.jsx';
 import SignUp from './components/AUthentication/SignUp.jsx';
 import Login from './components/AUthentication/Login.jsx';
+import Logout from './components/AUthentication/Logout.jsx';
 
 function RootApp() {
   return (
@@ -15,6 +16,7 @@ function RootApp() {
       <Routes>
         <Route path="/register" element={<SignUp />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/logout" element={<Logout />} />
         <Route path="/*" element={<App />} />
       </Routes>
       <Footer/>

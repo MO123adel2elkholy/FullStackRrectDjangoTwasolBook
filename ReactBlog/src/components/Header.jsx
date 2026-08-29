@@ -1,3 +1,4 @@
+// ...existing code...
 import * as React from 'react';
 import {
   AppBar,
@@ -87,15 +88,7 @@ export default function Header() {
     return () => window.removeEventListener('storage', onStorage);
   }, []);
 
-  const handleLogout = () => {
-    // remove common token keys used in JWT setups
-    ['access_token', 'refresh_token', 'access', 'refresh', 'token', 'auth_token'].forEach(
-      (k) => localStorage.removeItem(k)
-    );
-    setIsAuth(false);
-    navigate('/'); // or navigate('/login') if preferred
-  };
-
+  // Use the Logout route/component to perform the full logout flow (blacklist, clear headers, redirect)
   return (
     <HeaderAppBar position="static" elevation={0}>
       <Container maxWidth="lg">
@@ -147,7 +140,10 @@ export default function Header() {
                 </NavButton>
               </>
             ) : (
-              <NavButton onClick={handleLogout}>Logout</NavButton>
+              // route to the Logout component which handles blacklist + clearing + redirect
+              <NavButton component={RouterLink} to="/logout">
+                Logout
+              </NavButton>
             )}
 
             <WriteButton component={RouterLink} to="/create">
@@ -159,3 +155,4 @@ export default function Header() {
     </HeaderAppBar>
   );
 }
+// ...existing code...

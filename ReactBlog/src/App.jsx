@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react'
-// import './App.css'
+// ...existing code...
+import React, { useEffect, useState } from 'react'
+import axiosInstance from './axios'
 import Posts from './components/Posts'
 import PostDataLoading from './components/PostDataLoading'
 import PostError from './components/PostError'
-
 
 function App() {
   const [posts, setPosts] = useState([])
@@ -12,17 +12,11 @@ function App() {
 
   const fetchPosts = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/post')
-
-      if (!response.ok) {
-        throw { status: response.status }
-      }
-
-      const data = await response.json()
-      setPosts(data)
+      const res = await axiosInstance.get('post') // uses axios instance (auth + refresh)
+      setPosts(res.data)
     } catch (err) {
       setError({
-        status: err?.status || err?.response?.status || 500
+        status: err.response?.status || err?.status || 500
       })
     } finally {
       setLoading(false)
@@ -43,3 +37,4 @@ function App() {
 }
 
 export default App
+// ...existing code...
