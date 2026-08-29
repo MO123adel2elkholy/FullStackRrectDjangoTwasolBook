@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
-import './App.css'
+// import './App.css'
 import Posts from './components/Posts'
 import PostDataLoading from './components/PostDataLoading'
 import PostError from './components/PostError'
+
 
 function App() {
   const [posts, setPosts] = useState([])

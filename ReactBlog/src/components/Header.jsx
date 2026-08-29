@@ -11,7 +11,7 @@ import {
 import { styled } from '@mui/material/styles';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import SearchIcon from '@mui/icons-material/Search';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 
 const navItems = [
   { label: 'Home', to: '/' },
@@ -64,6 +64,38 @@ const SearchIconButton = styled(IconButton)(({ theme }) => ({
 }));
 
 export default function Header() {
+  const navigate = useNavigate();
+  const [isAuth, setIsAuth] = React.useState(false);
+
+  React.useEffect(() => {
+    const token =
+      localStorage.getItem('access_token') ||
+      localStorage.getItem('access') ||
+      localStorage.getItem('token') ||
+      localStorage.getItem('auth_token');
+    setIsAuth(Boolean(token));
+
+    const onStorage = () => {
+      const t =
+        localStorage.getItem('access_token') ||
+        localStorage.getItem('access') ||
+        localStorage.getItem('token') ||
+        localStorage.getItem('auth_token');
+      setIsAuth(Boolean(t));
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, []);
+
+  const handleLogout = () => {
+    // remove common token keys used in JWT setups
+    ['access_token', 'refresh_token', 'access', 'refresh', 'token', 'auth_token'].forEach(
+      (k) => localStorage.removeItem(k)
+    );
+    setIsAuth(false);
+    navigate('/'); // or navigate('/login') if preferred
+  };
+
   return (
     <HeaderAppBar position="static" elevation={0}>
       <Container maxWidth="lg">
@@ -93,11 +125,7 @@ export default function Header() {
 
           <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' }, gap: 1 }}>
             {navItems.map((item) => (
-              <NavButton
-                key={item.label}
-                component={RouterLink}
-                to={item.to}
-              >
+              <NavButton key={item.label} component={RouterLink} to={item.to}>
                 {item.label}
               </NavButton>
             ))}
@@ -107,6 +135,20 @@ export default function Header() {
             <SearchIconButton aria-label="search">
               <SearchIcon />
             </SearchIconButton>
+
+            {/* Auth buttons */}
+            {!isAuth ? (
+              <>
+                <NavButton component={RouterLink} to="/login">
+                  Login
+                </NavButton>
+                <NavButton component={RouterLink} to="/register">
+                  Register
+                </NavButton>
+              </>
+            ) : (
+              <NavButton onClick={handleLogout}>Logout</NavButton>
+            )}
 
             <WriteButton component={RouterLink} to="/create">
               create post
