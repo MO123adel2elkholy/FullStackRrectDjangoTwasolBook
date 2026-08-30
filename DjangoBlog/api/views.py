@@ -12,7 +12,7 @@ class PostChangPermission(BasePermission):
         return obj.author== request.user
 
 class PostList(ListCreateAPIView):
-    queryset = Post.postobjects.all()
+    queryset = Post.postobjects.prefetch_related('author').prefetch_related('category')
     serializer_class = PostSerializer
     permission_classes =[IsAuthenticated]
 
@@ -21,7 +21,7 @@ class PostList(ListCreateAPIView):
 
 
 class PostDetail(RetrieveUpdateDestroyAPIView , PostChangPermission):
-    queryset = Post.objects.all()
+    queryset = Post.postobjects.prefetch_related('author').prefetch_related('category')
     serializer_class = PostSerializer
     permission_classes =[ PostChangPermission]
 
