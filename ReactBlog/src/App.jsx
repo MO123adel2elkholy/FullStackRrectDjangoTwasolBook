@@ -1,9 +1,9 @@
 // ...existing code...
 import React, { useEffect, useState } from 'react'
 import axiosInstance from './axios'
-import Posts from './components/Posts'
-import PostDataLoading from './components/PostDataLoading'
-import PostError from './components/PostError'
+import Posts from './components/post/Posts'
+import PostDataLoading from './components/post/PostDataLoading'
+import PostError from './components/post/PostError'
 
 function App() {
   const [posts, setPosts] = useState([])

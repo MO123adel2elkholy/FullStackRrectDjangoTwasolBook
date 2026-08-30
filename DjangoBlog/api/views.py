@@ -19,10 +19,12 @@ class PostList(ListCreateAPIView):
 
 
 
-
 class PostDetail(RetrieveUpdateDestroyAPIView , PostChangPermission):
     queryset = Post.postobjects.prefetch_related('author').prefetch_related('category')
     serializer_class = PostSerializer
-    permission_classes =[ PostChangPermission]
+    permission_classes =[ PostChangPermission] 
+
+    # def get_object(self):
+    #     pass 
 
     
