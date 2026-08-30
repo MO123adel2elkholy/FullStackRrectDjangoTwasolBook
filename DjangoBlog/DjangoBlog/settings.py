@@ -136,7 +136,7 @@ STATIC_URL = '/static/'
 
 
 REST_FRAMEWORK = {
-    
+    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',
     ],
@@ -164,13 +164,3 @@ SIMPLE_JWT = {
 }
 
 
-# SIMPLE_JWT = {
-#     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),   # increased from 1
-#     'REFRESH_TOKEN_LIFETIME': timedelta(days=30),
-#     'ROTATE_REFRESH_TOKENS': True,
-#     'BLACKLIST_AFTER_ROTATION': True,
-#     'ALGORITHM': 'HS256',
-#     'SIGNING_KEY': SECRET_KEY,
-#     'AUTH_HEADER_TYPES': ('Bearer',),  # change to Bearer to match common frontend usage
-#     # ...existing code...
-# }
