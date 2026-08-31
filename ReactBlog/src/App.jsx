@@ -12,7 +12,7 @@ function App() {
 
   const fetchPosts = async () => {
     try {
-      const res = await axiosInstance.get('post') // uses axios instance (auth + refresh)
+      const res = await axiosInstance.get('post/') // uses axios instance (auth + refresh)
       setPosts(res.data)
     } catch (err) {
       setError({

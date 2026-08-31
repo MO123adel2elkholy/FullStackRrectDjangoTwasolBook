@@ -9,7 +9,19 @@ import {
   Stack,
   Typography
 } from '@mui/material'
-import { styled } from '@mui/material/styles'
+import { styled } from '@mui/material/styles';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
+
+
+const BrandLink = styled(RouterLink)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  textDecoration: 'none',
+  color: 'inherit',
+  marginRight: theme.spacing(3),
+}));
+
+
 
 const formatTimeAgo = (dateValue) => {
   if (!dateValue) return 'Just now'
@@ -259,10 +271,11 @@ const Posts = ({ posts }) => {
                       {createdAt}
                     </Typography>
                   </PostMeta>
-
+                    <BrandLink to={`/post/${post.id}`}>
                   <PostTitle variant="h6" component="h3">
-                    {title}
+                    {title} 
                   </PostTitle>
+                  </BrandLink>
 
                   <PostDescription variant="body2">
                     {displayText}

@@ -13,6 +13,11 @@ import { styled } from '@mui/material/styles';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import SearchIcon from '@mui/icons-material/Search';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import TextField from '@mui/material/TextField';
+import { useState } from 'react';
+// import useHistory from 'react-router-dom';
+
+
 
 const navItems = [
   { label: 'Home', to: '/' },
@@ -64,9 +69,22 @@ const SearchIconButton = styled(IconButton)(({ theme }) => ({
   borderRadius: 12,
 }));
 
+
+
+
 export default function Header() {
   const navigate = useNavigate();
   const [isAuth, setIsAuth] = React.useState(false);
+  // let history = useHistory();
+  const [data, setData] = useState({ search: '' });
+  
+  const goSearch = (e) => {
+      // history.push({
+      //   pathname: '/post/',
+      //   search: '?search=' + data.search,
+      // });
+      window.location.reload();
+    };
 
   React.useEffect(() => {
     const token =
@@ -126,7 +144,20 @@ export default function Header() {
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <SearchIconButton aria-label="search">
-              <SearchIcon />
+              {/* <SearchIcon /> */}
+               <TextField
+                              value={data.search}
+                              onChange={(search_value)=>setData({search:search_value})}
+                              // onClick={()=>goSearch(data.search)}
+                              name="search"
+                              required
+                              fullWidth
+                              id="search"
+                              label="Search"
+                              autoComplete="search"
+                              variant="outlined"
+
+                            />
             </SearchIconButton>
 
             {/* Auth buttons */}

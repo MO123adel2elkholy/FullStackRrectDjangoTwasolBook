@@ -9,6 +9,7 @@ import SignUp from './components/AUthentication/SignUp.jsx';
 import Login from './components/AUthentication/Login.jsx';
 import Logout from './components/AUthentication/Logout.jsx';
 import SinglePost from './components/post/SinglePost.jsx'
+import Search from './components/post/PostSearch.jsx';
 
 function RootApp() {
   return (
@@ -19,6 +20,7 @@ function RootApp() {
         <Route path="/login" element={<Login />} />
         <Route path="/logout" element={<Logout />} />
         <Route path="/post/:slug" element={<SinglePost/>} />
+        <Route path="/search" element={<Search/>} />
         <Route path="/*" element={<App />} />
       </Routes>
       <Footer/>
