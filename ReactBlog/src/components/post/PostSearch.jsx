@@ -161,6 +161,8 @@ const Search = () => {
         search: '',
         posts: [],
     });
+      const [expandedPosts, setExpandedPosts] = useState({})
+    
     
 
     useEffect(() => {
