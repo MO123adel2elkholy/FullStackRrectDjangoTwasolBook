@@ -42,10 +42,11 @@ export default function SinglePost() {
                         {data.posts.title}{' '}
                     </Typography>{' '}
                     <Typography
+
                         variant="h5"
                         align="center"
                         color="textSecondary"
-                        paragraph
+                        paragraph="true"
                     >
                         {data.posts.excerpt}{' '}
                     </Typography>{' '}

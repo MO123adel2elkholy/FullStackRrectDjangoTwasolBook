@@ -1,4 +1,3 @@
-// ...existing code...
 import axios from 'axios';
 
 const baseURL = 'http://127.0.0.1:8000/api/';
@@ -6,14 +5,44 @@ const baseURL = 'http://127.0.0.1:8000/api/';
 const getAccessToken = () => localStorage.getItem('access_token');
 const getRefreshToken = () => localStorage.getItem('refresh_token') || localStorage.getItem('refresh');
 
+// safe JWT parser (handles base64url and non-ASCII)
+function parseJwt(token) {
+  if (!token) return null;
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    return JSON.parse(jsonPayload);
+  } catch (e) {
+    console.error('Failed to parse JWT', e);
+    return null;
+  }
+}
+
 const axiosInstance = axios.create({
   baseURL,
   timeout: 5000,
   headers: {
     'Content-Type': 'application/json',
     Accept: 'application/json',
-    Authorization: getAccessToken() ? 'Bearer ' + getAccessToken() : undefined,
   },
+});
+
+// set Authorization header on every request from current localStorage
+axiosInstance.interceptors.request.use((config) => {
+  const token = getAccessToken();
+  if (token) {
+    config.headers = config.headers || {};
+    config.headers.Authorization = 'Bearer ' + token;
+  } else {
+    if (config.headers) delete config.headers.Authorization;
+  }
+  return config;
 });
 
 let isRefreshing = false;
@@ -37,7 +66,7 @@ axiosInstance.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    // If refresh endpoint failed -> force login
+    // if refresh endpoint itself failed -> force login
     if (
       error.response.status === 401 &&
       originalRequest &&
@@ -57,12 +86,8 @@ axiosInstance.interceptors.response.use(
         return Promise.reject(error);
       }
 
-      // decode refresh token safely
-      let tokenParts;
-      try {
-        tokenParts = JSON.parse(atob(refreshToken.split('.')[1]));
-      } catch (e) {
-        console.error('Failed to parse refresh token', e);
+      const tokenParts = parseJwt(refreshToken);
+      if (!tokenParts) {
         window.location.href = '/login';
         return Promise.reject(error);
       }
@@ -85,7 +110,8 @@ axiosInstance.interceptors.response.use(
               reject(error);
               return;
             }
-            originalRequest.headers['Authorization'] = 'Bearer ' + token;
+            originalRequest.headers = originalRequest.headers || {};
+            originalRequest.headers.Authorization = 'Bearer ' + token;
             resolve(axiosInstance(originalRequest));
           });
         });
@@ -95,7 +121,8 @@ axiosInstance.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const refreshResponse = await axiosInstance.post('token/refresh/', {
+        // use plain axios (no interceptors) to avoid recursion
+        const refreshResponse = await axios.post(baseURL + 'token/refresh/', {
           refresh: refreshToken,
         });
 
@@ -105,7 +132,9 @@ axiosInstance.interceptors.response.use(
         localStorage.setItem('access_token', newAccess);
         localStorage.setItem('refresh_token', newRefresh);
 
+        // update defaults and original request header
         axiosInstance.defaults.headers.common['Authorization'] = 'Bearer ' + newAccess;
+        originalRequest.headers = originalRequest.headers || {};
         originalRequest.headers['Authorization'] = 'Bearer ' + newAccess;
 
         onRefreshed(newAccess);
@@ -125,4 +154,3 @@ axiosInstance.interceptors.response.use(
 );
 
 export default axiosInstance;
-// ...existing code...

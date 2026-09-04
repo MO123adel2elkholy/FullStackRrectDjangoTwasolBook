@@ -212,7 +212,7 @@ const Posts = ({ posts }) => {
 
           return (
             <Grid
-              item
+              item='true'
               xs={12}
               sm={6}
               md={4}

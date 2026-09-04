@@ -16,7 +16,7 @@ from rest_framework import permissions
 class PostList(ListAPIView):
     queryset = Post.postobjects.prefetch_related('author').prefetch_related('category')
     serializer_class = readPostSerializer
-    # permission_classes =[IsAuthenticated]
+    permission_classes =[IsAuthenticated]
     filter_backends = [filters.SearchFilter]
         # '^' Starts-with search.
         # '=' Exact matches.
@@ -58,7 +58,7 @@ class CreatePost(generics.CreateAPIView):
 #             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class AdminPostDetail(generics.RetrieveAPIView):
+class AdminPostDetail(generics.RetrieveUpdateAPIView):
     permission_classes = [permissions.IsAuthenticated]
     queryset = Post.objects.all()
     serializer_class = PostSerializer
