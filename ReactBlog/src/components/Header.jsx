@@ -185,7 +185,7 @@ export default function Header() {
               </NavButton>
             )}
 
-            <WriteButton component={RouterLink} to="/create">
+            <WriteButton component={RouterLink} to="/admin/create">
               create post
             </WriteButton>
           </Box>

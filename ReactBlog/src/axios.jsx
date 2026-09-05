@@ -28,7 +28,7 @@ const axiosInstance = axios.create({
   baseURL,
   timeout: 5000,
   headers: {
-    'Content-Type': 'application/json',
+    // don't force JSON globally — let requests decide (browser will set multipart boundaries)
     Accept: 'application/json',
   },
 });
@@ -36,12 +36,37 @@ const axiosInstance = axios.create({
 // set Authorization header on every request from current localStorage
 axiosInstance.interceptors.request.use((config) => {
   const token = getAccessToken();
+  config.headers = config.headers || {};
+
   if (token) {
-    config.headers = config.headers || {};
     config.headers.Authorization = 'Bearer ' + token;
   } else {
     if (config.headers) delete config.headers.Authorization;
   }
+
+  // If sending FormData, let the browser set Content-Type with the correct boundary.
+  // Otherwise, set application/json if no Content-Type was provided by caller.
+  const isFormData =
+    typeof FormData !== 'undefined' && config.data && config.data instanceof FormData;
+
+  // check case-insensitive presence of Content-Type
+  const hasContentType = Object.keys(config.headers).some(
+    (h) => h.toLowerCase() === 'content-type'
+  );
+
+  if (isFormData) {
+    if (hasContentType) {
+      // remove forced Content-Type so browser can add multipart/form-data; boundary=...
+      Object.keys(config.headers).forEach((h) => {
+        if (h.toLowerCase() === 'content-type') delete config.headers[h];
+      });
+    }
+  } else {
+    if (!hasContentType) {
+      config.headers['Content-Type'] = 'application/json';
+    }
+  }
+
   return config;
 });
 
