@@ -186,7 +186,7 @@ export default function Header() {
             )}
 
             <WriteButton component={RouterLink} to="/admin/create">
-              create post
+              upload post
             </WriteButton>
           </Box>
         </Toolbar>
@@ -195,3 +195,4 @@ export default function Header() {
   );
 }
 // ...existing code...
+

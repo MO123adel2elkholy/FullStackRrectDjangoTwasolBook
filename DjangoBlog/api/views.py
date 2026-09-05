@@ -2,7 +2,7 @@ from django.shortcuts import render
 from rest_framework.generics import (  RetrieveAPIView , ListAPIView)
 from .serializers import PostSerializer , readPostSerializer
 from blog.models import  Post , Category
-from rest_framework.permissions import IsAuthenticated 
+from rest_framework.permissions import IsAuthenticated  , IsAuthenticatedOrReadOnly
 from .pemissions import PostChangPermission
 from rest_framework import filters
 from rest_framework import generics
@@ -18,22 +18,13 @@ from rest_framework.parsers import MultiPartParser, FormParser
 
 
 
-# class PostList(ListAPIView):
-#     queryset = Post.postobjects.prefetch_related('author').prefetch_related('category')
-#     serializer_class = readPostSerializer
-#     permission_classes =[IsAuthenticated]
-#     filter_backends = [filters.SearchFilter]
-#         # '^' Starts-with search.
-#         # '=' Exact matches.
-#     search_fields = ['^slug']
-    
 
 
 # ...existing code...
 class PostList(ListAPIView):
     queryset = Post.postobjects.prefetch_related('author').prefetch_related('category')
     serializer_class = readPostSerializer
-    permission_classes =[IsAuthenticated]
+    permission_classes =[IsAuthenticatedOrReadOnly]
     filter_backends = [filters.SearchFilter]
     # allow searching by title, slug, excerpt or content (icontains by default)
     search_fields = ['title', 'slug', 'excerpt', 'content']
@@ -50,16 +41,11 @@ class PostDetail(RetrieveAPIView , PostChangPermission):
 
     
 
-# Post Admin
 
-# class CreatePost(generics.CreateAPIView):
-#     permission_classes = [permissions.IsAuthenticated]
-#     queryset = Post.objects.all()
-#     serializer_class = PostSerializer
 
 
 class CreatePost(APIView):
-    # permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser]
 
     def post(self, request, format=None):
@@ -72,20 +58,20 @@ class CreatePost(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class AdminPostDetail(generics.RetrieveUpdateAPIView):
-    permission_classes = [permissions.IsAuthenticated]
+class AdminPostDetail(generics.RetrieveUpdateAPIView , PostChangPermission):
+    permission_classes = [permissions.IsAuthenticated , PostChangPermission]
     queryset = Post.objects.all()
     serializer_class = PostSerializer
 
 
-class EditPost(generics.UpdateAPIView):
-    permission_classes = [permissions.IsAuthenticated]
+class EditPost(generics.UpdateAPIView , PostChangPermission):
+    permission_classes = [permissions.IsAuthenticated , PostChangPermission]
     serializer_class = PostSerializer
     queryset = Post.objects.all()
 
 
-class DeletePost(generics.RetrieveDestroyAPIView):
-    permission_classes = [permissions.IsAuthenticated]
+class DeletePost(generics.RetrieveDestroyAPIView , PostChangPermission):
+    permission_classes = [permissions.IsAuthenticated , PostChangPermission]
     serializer_class = PostSerializer
     queryset = Post.objects.all()
 

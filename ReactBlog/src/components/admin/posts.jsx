@@ -54,7 +54,7 @@ const Posts = ({ posts = [] }) => {
 
                   <TableCell align="left">
                     <RouterLink
-                      to={`/post/${post.slug}`}
+                      to={`/post/${post.id}`}
                       style={{ color: '#1976d2', textDecoration: 'none' }}
                     >
                       {post.title}

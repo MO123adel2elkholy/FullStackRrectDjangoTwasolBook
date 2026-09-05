@@ -226,6 +226,14 @@ export default function Create() {
       console.error('Error creating post:', err);
       setError(err.response?.data?.detail || (err.response?.data && JSON.stringify(err.response.data)) || 'Failed to create post. Please try again.');
       setSubmitting(false);
+      console.log(err.status+10)
+      if (err.status==401){
+        console.log('you arnt authenticated  now')
+        setError( JSON.stringify('You are not authenticated  please login ') )
+        navigate('/login/');
+
+      }
+
     }
   };
 
