@@ -269,7 +269,7 @@ export default function Edit() {
 
         <Box component="form" noValidate onSubmit={handleSubmit}>
           <Grid container spacing={3}>
-            <Grid item xs={12}>
+            <Grid item='true' xs={12}>
               <Typography variant="subtitle2" sx={{ color: 'rgba(255, 255, 255, 0.7)', marginBottom: 1 }}>
                 Post Title *
               </Typography>

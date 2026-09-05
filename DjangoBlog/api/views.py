@@ -13,17 +13,26 @@ from rest_framework import permissions
 
 
 
+# class PostList(ListAPIView):
+#     queryset = Post.postobjects.prefetch_related('author').prefetch_related('category')
+#     serializer_class = readPostSerializer
+#     permission_classes =[IsAuthenticated]
+#     filter_backends = [filters.SearchFilter]
+#         # '^' Starts-with search.
+#         # '=' Exact matches.
+#     search_fields = ['^slug']
+    
+
+
+# ...existing code...
 class PostList(ListAPIView):
     queryset = Post.postobjects.prefetch_related('author').prefetch_related('category')
     serializer_class = readPostSerializer
     permission_classes =[IsAuthenticated]
     filter_backends = [filters.SearchFilter]
-        # '^' Starts-with search.
-        # '=' Exact matches.
-    search_fields = ['^slug']
-    
-
-
+    # allow searching by title, slug, excerpt or content (icontains by default)
+    search_fields = ['title', 'slug', 'excerpt', 'content']
+# ...existing code...
 
 
 class PostDetail(RetrieveAPIView , PostChangPermission):

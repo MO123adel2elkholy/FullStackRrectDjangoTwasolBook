@@ -1,354 +1,293 @@
+// ...existing code...
 import axiosInstance from '../../axios';
-import * as React from 'react';
-import { useState ,useEffect } from 'react'
+import React, { useState, useEffect } from 'react';
 import {
   Avatar,
   Box,
   Button,
-  Chip,
   Container,
   Grid,
   Stack,
-  Typography
-} from '@mui/material'
+  Typography,
+  Chip,
+  Skeleton,
+} from '@mui/material';
 import { styled } from '@mui/material/styles';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { Link as RouterLink, useLocation } from 'react-router-dom';
 
-
-
-const BrandLink = styled(RouterLink)(({ theme }) => ({
+const PostsContainer = styled('div')(({ theme }) => ({
+  background: '#f6fafc',
+  minHeight: '100vh',
+  paddingTop: theme.spacing(6),
+  paddingBottom: theme.spacing(8),
   display: 'flex',
-  alignItems: 'center',
-  textDecoration: 'none',
-  color: 'inherit',
-  marginRight: theme.spacing(3),
+  justifyContent: 'center',
 }));
 
+const Inner = styled(Container)(({ theme }) => ({
+  paddingTop: theme.spacing(2),
+  paddingBottom: theme.spacing(4),
+}));
 
-
-const formatTimeAgo = (dateValue) => {
-  if (!dateValue) return 'Just now'
-
-  const date = new Date(dateValue)
-  if (Number.isNaN(date.getTime())) return 'Just now'
-
-  const diffMs = Date.now() - date.getTime()
-  const diffSeconds = Math.floor(diffMs / 1000)
-  const diffMinutes = Math.floor(diffSeconds / 60)
-  const diffHours = Math.floor(diffMinutes / 60)
-  const diffDays = Math.floor(diffHours / 24)
-  const diffMonths = Math.floor(diffDays / 30)
-  const diffYears = Math.floor(diffDays / 365)
-
-  if (diffSeconds < 60) return 'Just now'
-  if (diffMinutes < 60) return `${diffMinutes} min ago`
-  if (diffHours < 24) return `${diffHours} hr ago`
-  if (diffDays < 30) return `${diffDays} day ago`
-  if (diffMonths < 12) return `${diffMonths} month ago`
-  return `${diffYears} year ago`
-}
-
-const PostsContainer = styled(Container)(({ theme }) => ({
-  background: 'linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%)',
-  minHeight: '100vh',
-  paddingTop: theme.spacing(4),
-  paddingBottom: theme.spacing(5)
-}))
-
-const StyledCard = styled(Box)(({ theme }) => ({
+const GridCard = styled(Box)(({ theme }) => ({
   width: '100%',
-  maxWidth: 320,
-  minWidth: 260,
-  height: '100%',
+  borderRadius: 16,
+  overflow: 'hidden',
+  background: '#ffffff',
+  boxShadow: '0 6px 20px rgba(16,24,40,0.06)',
+  transition: 'transform .22s ease, box-shadow .22s ease',
   display: 'flex',
   flexDirection: 'column',
-  background: '#ffffff',
-  border: '1px solid rgba(148, 163, 184, 0.2)',
-  borderRadius: 18,
-  overflow: 'hidden',
-  boxShadow: '0 12px 30px rgba(15, 23, 42, 0.08)',
-  transition: 'transform 0.28s ease, box-shadow 0.28s ease, border-color 0.28s ease',
+  height: '100%',
   '&:hover': {
     transform: 'translateY(-6px)',
-    boxShadow: '0 18px 40px rgba(59, 130, 246, 0.12)',
-    borderColor: 'rgba(59, 130, 246, 0.25)'
-  }
-}))
+    boxShadow: '0 16px 40px rgba(16,24,40,0.12)',
+  },
+}));
 
-const PostImageWrap = styled(Box)({
+const MediaWrap = styled('div')(({ theme }) => ({
   position: 'relative',
-  height: 240,
-  overflow: 'hidden'
-})
+  height: 220,
+  overflow: 'hidden',
+  background: '#e6eef7',
+}));
 
-const PostImage = styled('img')({
+const MediaImg = styled('img')(({ theme }) => ({
   width: '100%',
   height: '100%',
   objectFit: 'cover',
-  display: 'block'
-})
+  display: 'block',
+  transition: 'transform .35s ease',
+  transformOrigin: 'center center',
+}));
 
-const ImageOverlay = styled(Box)({
+const MediaOverlay = styled('div')(({ theme }) => ({
   position: 'absolute',
   inset: 0,
-  background: 'linear-gradient(180deg, rgba(15,23,42,0.08) 0%, rgba(15,23,42,0.7) 100%)'
-})
+  background:
+    'linear-gradient(180deg, rgba(15,23,42,0.06) 0%, rgba(255,255,255,0) 40%, rgba(15,23,42,0.22) 100%)',
+}));
 
-const PostBody = styled(Box)(({ theme }) => ({
+const CardBody = styled(Box)(({ theme }) => ({
+  padding: theme.spacing(2.2),
   display: 'flex',
   flexDirection: 'column',
-  flexGrow: 1,
   gap: theme.spacing(1.5),
-  padding: theme.spacing(2.2)
-}))
+  flexGrow: 1,
+}));
 
-const PostMeta = styled(Box)({
+const MetaRow = styled(Box)(({ theme }) => ({
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
-  gap: 8
-})
+  gap: theme.spacing(1),
+}));
 
-const AuthorRow = styled(Box)({
-  display: 'flex',
-  alignItems: 'center',
-  gap: 10,
-  zIndex: 1
-})
+const TitleLink = styled(RouterLink)(({ theme }) => ({
+  textDecoration: 'none',
+  color: 'inherit',
+  '&:hover': { textDecoration: 'underline' },
+}));
 
-const AuthorAvatar = styled(Avatar)({
-  width: 34,
-  height: 34,
-  border: '2px solid rgba(255,255,255,0.4)',
-  background: 'linear-gradient(135deg, #38bdf8, #8b5cf6)'
-})
+function PostCard({ post }) {
+  const [expanded, setExpanded] = useState(false);
 
-const PostTitle = styled(Typography)({
-  fontWeight: 700,
-  lineHeight: 1.35,
-  color: '#0f172a'
-})
+  const title = post.title || 'Untitled Post';
+  const category = (post.category && (post.category.name || post.category)) || 'General';
+  const fullText = post.excerpt || post.content || post.description || '';
+  const image =
+    (post.image && post.image.startsWith && post.image.startsWith('http')) ||
+    (post.image && post.image !== '')
+      ? post.image
+      : post.cover_image || post.thumbnail || 'https://via.placeholder.com/900x600?text=Blog+Image';
+  const createdAtValue = post.created_at || post.published || post.date || null;
+  const createdAt = (() => {
+    if (!createdAtValue) return 'Just now';
+    const date = new Date(createdAtValue);
+    if (Number.isNaN(date.getTime())) return 'Just now';
+    return date.toLocaleDateString();
+  })();
+  const authorName = post.author?.username || post.author_name || post.author || 'Admin';
+  const authorAvatar =
+    post.author?.avatar || post.author_avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(authorName)}`;
+  const postId = post.id || title;
 
-const PostDescription = styled(Typography)(({ theme }) => ({
-  color: '#475569',
-  lineHeight: 1.75,
-  fontSize: '0.94rem',
-  flexGrow: 1
-}))
+  const limit = 140;
+  const needsToggle = (fullText || '').length > limit;
+  const displayText = expanded ? fullText : (fullText || '').slice(0, limit) + (needsToggle && !expanded ? '…' : '');
 
-const ReadMoreButton = styled(Button)({
-  alignSelf: 'flex-start',
-  textTransform: 'none',
-  borderRadius: 999,
-  padding: '8px 16px',
-  fontWeight: 600,
-  background: 'linear-gradient(135deg, #38bdf8, #2563eb)',
-  color: '#fff',
-  boxShadow: 'none',
-  '&:hover': {
-    background: 'linear-gradient(135deg, #0ea5e9, #1d4ed8)',
-    boxShadow: '0 10px 24px rgba(37, 99, 235, 0.35)'
-  }
-})
+  return (
+    <GridCard>
+      <MediaWrap>
+        <MediaImg src={image} alt={title} />
+        <MediaOverlay />
+        <Box sx={{ position: 'absolute', left: 12, bottom: 12, zIndex: 2 }}>
+          <Stack direction="row" spacing={1} alignItems="center">
+            <Avatar src={authorAvatar} sx={{ width: 36, height: 36, border: '2px solid rgba(255,255,255,0.85)' }} />
+            <Box>
+              <Typography variant="caption" sx={{ color: '#fff', fontWeight: 700 }}>
+                {authorName}
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#e6eef7', display: 'block' }}>
+                {createdAt}
+              </Typography>
+            </Box>
+          </Stack>
+        </Box>
+      </MediaWrap>
 
+      <CardBody>
+        <MetaRow>
+          <Chip
+            label={category}
+            size="small"
+            sx={{
+              bgcolor: '#e6f0ff',
+              color: '#0369a1',
+              fontWeight: 700,
+              borderRadius: 8,
+              px: 1.2,
+            }}
+          />
+          <Typography variant="caption" sx={{ color: '#94a3b8' }}>
+            {createdAt}
+          </Typography>
+        </MetaRow>
 
+        <TitleLink to={`/post/${postId}`}>
+          <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a', lineHeight: 1.2 }}>
+            {title}
+          </Typography>
+        </TitleLink>
 
+        <Typography variant="body2" sx={{ color: '#475569', mt: 0.5, minHeight: 48 }}>
+          {displayText}
+        </Typography>
 
-const Search = () => {
-    const  search_query= 'spi'
-    const search = 'post';
-    const [appState, setAppState] = useState({
-        search: '',
-        posts: [],
-    });
-      const [expandedPosts, setExpandedPosts] = useState({})
-    
-    
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
+          <Button component={RouterLink} to={`/post/${postId}`} size="small" variant="contained" sx={{ textTransform: 'none', borderRadius: 8, background: 'linear-gradient(90deg,#60a5fa,#3b82f6)' }}>
+            Read more
+          </Button>
 
-    useEffect(() => {
-        const static_link = 'http://127.0.0.1:8000/api/post/?search=da'
-        axiosInstance.get(`${search}/?search=${search_query}` ).then((res) => {
-            const allPosts = res.data;
-            setAppState({ posts: allPosts });
-            console.log(res.data);
-        });
-    }, [setAppState]);
-
-     const toggleExpanded = (postId) => {
-        setExpandedPosts((prev) => ({
-          ...prev,
-          [postId]: !prev[postId]
-        }))
-      }
-    
-      if (!appState.posts || appState.posts.length === 0) {
-        return (
-          <PostsContainer>
-            <Typography variant="h6" color="text.secondary">
-              No posts found matches {search_query}.
+          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+            {needsToggle && (
+              <Button
+                size="small"
+                variant="text"
+                onClick={() => setExpanded((s) => !s)}
+                sx={{ textTransform: 'none', color: '#2563eb' }}
+              >
+                {expanded ? 'Show less' : 'Show more'}
+              </Button>
+            )}
+            <Typography variant="caption" sx={{ color: '#94a3b8' }}>
+              {post.read_time ? `${post.read_time} min` : ''}
             </Typography>
-          </PostsContainer>
-        )
-      }
-    
+          </Box>
+        </Box>
+      </CardBody>
+    </GridCard>
+  );
+}
 
+export default function PostSearch() {
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const query = params.get('search') || '';
 
-    return (
-        <React.Fragment>
-            <Container maxWidth="md" component="main">
-                  <Typography
-                                        variant="caption"
-                                        sx={{
-                                        backgroundColor: '#e0f2fe',
-                                        color: '#0369a1',
-                                        fontWeight: 2000,
-                                        fontSize:100,
-                                        borderRadius: 999,
-                                        border: '1px solid rgba(56, 189, 248, 0.25)'
-                                      }}
-                                        >
-                                          search about {search_query}
-                </Typography>
-                
-                      <Grid container spacing={3}>
-                        {appState.posts.map((post) => {
-                          const title = post.title || 'Untitled Post'
-                          const category = post.category || 'General'
-                          const description =
-                            post.content ||
-                            post.description ||
-                            post.body ||
-                            'No description available.'
-                
-                          const image =
-                            post.image ||
-                            post.cover_image ||
-                            post.thumbnail ||
-                            'https://via.placeholder.com/900x600?text=Blog+Image'
-                
-                          const createdAtValue =
-                            post.created_at || post.published || post.date || new Date().toISOString()
-                
-                          const createdAt = formatTimeAgo(createdAtValue)
-                
-                          const authorName =
-                            post.author_name ||
-                            post.author ||
-                            post.user?.username ||
-                            'Admin User'
-                
-                          const authorAvatar =
-                            post.author_avatar ||
-                            post.user?.avatar ||
-                            `https://ui-avatars.com/api/?name=${encodeURIComponent(authorName)}`
-                
-                          const postId = post.id || title
-                          const isExpanded = !!appState.posts[postId]
-                          const shouldShowReadMore = description.length > 200
-                          const displayText =
-                            shouldShowReadMore && !isExpanded
-                              ? `${description.slice(0, 100)}...`
-                              : description
-                
-                          return (
-                            <Grid
-                              item
-                              xs={12}
-                              sm={6}
-                              md={4}
-                              key={postId}
-                              sx={{
-                                display: 'flex',
-                                justifyContent: 'center'
-                              }}
-                            >
-                              <StyledCard>
-                                <PostImageWrap>
-                                  <PostImage src={image} alt={title} />
-                                  <ImageOverlay />
-                
-                                  <Box
-                                    sx={{
-                                      position: 'absolute',
-                                      left: 16,
-                                      right: 16,
-                                      bottom: 16,
-                                      zIndex: 1
-                                    }}
-                                  >
-                                    <AuthorRow>
-                                      <AuthorAvatar src={authorAvatar} alt={authorName} />
-                                      <Stack spacing={0}>
-                                        <Typography
-                                          variant="caption"
-                                          sx={{ color: '#e2e8f0', fontWeight: 600 }}
-                                        >
-                                          {authorName}
-                                        </Typography>
-                                        <Typography variant="caption" sx={{ color: '#cbd5e1' }}>
-                                          {createdAt}
-                                        </Typography>
-                                      </Stack>
-                                    </AuthorRow>
-                                  </Box>
-                                </PostImageWrap>
-                
-                                <PostBody>
-                                  <PostMeta>
-                                    <Chip
-                                      label={category}
-                                      size="small"
-                                      sx={{
-                                        backgroundColor: '#e0f2fe',
-                                        color: '#0369a1',
-                                        fontWeight: 600,
-                                        borderRadius: 999,
-                                        border: '1px solid rgba(56, 189, 248, 0.25)'
-                                      }}
-                                    />
-                
-                                    <Typography variant="caption" sx={{ color: '#64748b' }}>
-                                      {createdAt}
-                                    </Typography>
-                                  </PostMeta>
-                                    <BrandLink to={`/post/${post.id}`}>
-                                  <PostTitle variant="h6" component="h3">
-                                    {title} 
-                                  </PostTitle>
-                                  </BrandLink>
-                
-                                  <PostDescription variant="body2">
-                                    {displayText}
-                                  </PostDescription>
-                
-                                  {shouldShowReadMore && !isExpanded && (
-                                    <ReadMoreButton
-                                      variant="contained"
-                                      size="small"
-                                      onClick={() => toggleExpanded(postId)}
-                                    >
-                                      Read more
-                                    </ReadMoreButton>
-                                  )}
-                
-                                  {shouldShowReadMore && isExpanded && (
-                                    <ReadMoreButton
-                                      variant="outlined"
-                                      size="small"
-                                      onClick={() => toggleExpanded(postId)}
-                                    >
-                                      Show less
-                                    </ReadMoreButton>
-                                  )}
-                                </PostBody>
-                              </StyledCard>
-                            </Grid>
-                          )
-                        })}
-                      </Grid>
-                  
-            </Container>
-        </React.Fragment>
-    );
-};
-export default Search;
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(Boolean(query));
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!query) {
+      setPosts([]);
+      setLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    setLoading(true);
+    setError('');
+
+    axiosInstance
+      .get(`post/?search=${encodeURIComponent(query)}`)
+      .then((res) => {
+        if (cancelled) return;
+        setPosts(Array.isArray(res.data) ? res.data : res.data.results || []);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setError(err.response?.data?.detail || 'Failed to load posts.');
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [query]);
+
+  return (
+    <PostsContainer>
+      <Inner maxWidth="lg">
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="h5" sx={{ fontWeight: 800, color: '#0f172a' }}>
+            {query ? `Search results for “${query}”` : 'Search posts'}
+          </Typography>
+          <Typography variant="body2" sx={{ color: '#64748b', mt: 0.5 }}>
+            {query ? `Showing results matching "${query}"` : 'Enter a search term to find posts.'}
+          </Typography>
+        </Box>
+
+        {loading && (
+          <Grid container spacing={3}>
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Grid item xs={12} sm={6} md={4} key={i}>
+                <GridCard>
+                  <MediaWrap>
+                    <Skeleton variant="rectangular" width="100%" height="100%" />
+                  </MediaWrap>
+                  <CardBody>
+                    <Skeleton width="80%" height={28} />
+                    <Skeleton width="100%" height={16} />
+                    <Skeleton width="60%" height={16} />
+                  </CardBody>
+                </GridCard>
+              </Grid>
+            ))}
+          </Grid>
+        )}
+
+        {!loading && error && (
+          <Box sx={{ py: 6 }}>
+            <Typography color="error">{error}</Typography>
+          </Box>
+        )}
+
+        {!loading && !error && posts.length === 0 && query && (
+          <Box sx={{ py: 6 }}>
+            <Typography variant="h6" color="text.secondary">
+              No posts found matching “{query}”.
+            </Typography>
+          </Box>
+        )}
+
+        {!loading && !error && posts.length > 0 && (
+          <Grid container spacing={3}>
+            {posts.map((post) => {
+              const key = post.slug || post.id || post.title || Math.random();
+              return (
+                <Grid item xs={12} sm={6} md={4} key={key}>
+                  <PostCard post={post} />
+                </Grid>
+              );
+            })}
+          </Grid>
+        )}
+      </Inner>
+    </PostsContainer>
+  );
+}
+// ...existing code...

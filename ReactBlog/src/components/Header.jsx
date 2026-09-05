@@ -8,16 +8,14 @@ import {
   IconButton,
   Toolbar,
   Typography,
+  TextField,
+  InputAdornment,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import SearchIcon from '@mui/icons-material/Search';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
-import TextField from '@mui/material/TextField';
 import { useState } from 'react';
-// import useHistory from 'react-router-dom';
-
-
 
 const navItems = [
   { label: 'Home', to: '/' },
@@ -69,22 +67,15 @@ const SearchIconButton = styled(IconButton)(({ theme }) => ({
   borderRadius: 12,
 }));
 
-
-
-
 export default function Header() {
   const navigate = useNavigate();
   const [isAuth, setIsAuth] = React.useState(false);
-  // let history = useHistory();
-  const [data, setData] = useState({ search: '' });
-  
-  const goSearch = (e) => {
-      // history.push({
-      //   pathname: '/post/',
-      //   search: '?search=' + data.search,
-      // });
-      window.location.reload();
-    };
+  const [search, setSearch] = useState('');
+
+ const goSearch = (value = search) => {
+  const q = (value || '').trim();
+  navigate(`/search?search=${encodeURIComponent(q)}`); // <-- use /search to match your Routes
+};
 
   React.useEffect(() => {
     const token =
@@ -106,7 +97,6 @@ export default function Header() {
     return () => window.removeEventListener('storage', onStorage);
   }, []);
 
-  // Use the Logout route/component to perform the full logout flow (blacklist, clear headers, redirect)
   return (
     <HeaderAppBar position="static" elevation={0}>
       <Container maxWidth="lg">
@@ -143,24 +133,43 @@ export default function Header() {
           </Box>
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <SearchIconButton aria-label="search">
-              {/* <SearchIcon /> */}
-               <TextField
-                              value={data.search}
-                              onChange={(search_value)=>setData({search:search_value})}
-                              // onClick={()=>goSearch(data.search)}
-                              name="search"
-                              required
-                              fullWidth
-                              id="search"
-                              label="Search"
-                              autoComplete="search"
-                              variant="outlined"
+            <TextField
+              size="small"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') goSearch(e.target.value);
+              }}
+              placeholder="Search..."
+              aria-label="Search posts"
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon sx={{ color: '#fff' }} />
+                  </InputAdornment>
+                ),
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <SearchIconButton
+                      aria-label="submit search"
+                      onClick={() => goSearch(search)}
+                      edge="end"
+                      size="small"
+                    >
+                      <SearchIcon />
+                    </SearchIconButton>
+                  </InputAdornment>
+                ),
+              }}
+              sx={{
+                bgcolor: 'rgba(255,255,255,0.04)',
+                borderRadius: 1,
+                mr: 1,
+                input: { color: '#fff' },
+                '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
+              }}
+            />
 
-                            />
-            </SearchIconButton>
-
-            {/* Auth buttons */}
             {!isAuth ? (
               <>
                 <NavButton component={RouterLink} to="/login">
@@ -171,7 +180,6 @@ export default function Header() {
                 </NavButton>
               </>
             ) : (
-              // route to the Logout component which handles blacklist + clearing + redirect
               <NavButton component={RouterLink} to="/logout">
                 Logout
               </NavButton>

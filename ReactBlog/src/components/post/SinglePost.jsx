@@ -1,60 +1,321 @@
+// ...existing code...
 import React, { useState, useEffect } from 'react';
 import axiosInstance from '../../axios';
 import { useParams } from 'react-router-dom';
-//MaterialUI
-import Container from '@mui/material/Container';
-import CssBaseline from '@mui/material/CssBaseline';
-import {Typography} from '@mui/material';
+import {
+  Avatar,
+  Box,
+  Button,
+  Chip,
+  Container,
+  CssBaseline,
+  Divider,
+  Grid,
+  Skeleton,
+  Stack,
+  Typography,
+} from '@mui/material';
+import { styled } from '@mui/material/styles';
 
+// Container and layout
+const PageWrap = styled('div')(({ theme }) => ({
+  background: '#f6fafc',
+  minHeight: '100vh',
+  paddingTop: theme.spacing(8),
+  paddingBottom: theme.spacing(8),
+}));
 
+const PostCard = styled(Container)(({ theme }) => ({
+  background: '#fff',
+  borderRadius: 16,
+  padding: theme.spacing(3),
+  boxShadow: '0 10px 30px rgba(16,24,40,0.06)',
+}));
 
+const Hero = styled('div')(({ theme }) => ({
+  width: '100%',
+  borderRadius: 12,
+  overflow: 'hidden',
+  position: 'relative',
+  height: 420,
+  background: '#e9f0fb',
+}));
+
+const HeroImg = styled('img')(({ theme }) => ({
+  width: '100%',
+  height: '100%',
+  objectFit: 'cover',
+  display: 'block',
+}));
+
+const HeroOverlay = styled('div')(({ theme }) => ({
+  position: 'absolute',
+  inset: 0,
+  background:
+    'linear-gradient(180deg, rgba(255,255,255,0.0) 20%, rgba(15,23,42,0.18) 100%)',
+}));
+
+const MetaRow = styled(Stack)(({ theme }) => ({
+  marginTop: theme.spacing(2),
+  gap: theme.spacing(1),
+}));
+
+const AuthorAvatar = styled(Avatar)(({ theme }) => ({
+  width: 48,
+  height: 48,
+  border: '2px solid rgba(16,24,40,0.06)',
+}));
 
 export default function SinglePost() {
-    const { slug } = useParams();
-    // const classes = useStyles();
 
-    const [data, setData] = useState({
-        posts: [],
-    });
 
-    useEffect(() => {
-        axiosInstance.get('post/' + slug).then((res) => {
-            setData({
-                posts: res.data,
-            });
-            console.log(res.data);
-        });
-    }, [setData]);
 
+  const { slug } = useParams();
+  const [post, setPost] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError('');
+    axiosInstance
+      .get('post/' + slug)
+      .then((res) => {
+        if (cancelled) return;
+        setPost(res.data);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setError(err.response?.data?.detail || 'Failed to load post.');
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [slug]);
+
+  if (loading) {
     return (
-        <Container component="main" maxWidth="md">
-            <CssBaseline />
-            <div > </div>{' '}
-            <div >
-                <Container maxWidth="sm">
-                    <Typography
-                        component="h1"
-                        variant="h2"
-                        align="center"
-                        color="textPrimary"
-                        gutterBottom
-                    >
-                        {data.posts.title}{' '}
-                    </Typography>{' '}
-                    <Typography
-
-                        variant="h5"
-                        align="center"
-                        color="textSecondary"
-                        paragraph="true"
-                    >
-                        {data.posts.excerpt}{' '}
-                    </Typography>{' '}
-                </Container>{' '}
-            </div>{' '}
+      <PageWrap>
+        <Container maxWidth="md">
+          <CssBaseline />
+          <Skeleton variant="rectangular" height={420} sx={{ borderRadius: 2, mb: 2 }} />
+          <Skeleton width="60%" height={36} />
+          <Skeleton width="40%" height={28} sx={{ mt: 1 }} />
+          <Box sx={{ mt: 3 }}>
+            <Skeleton variant="rectangular" height={16} sx={{ mb: 1 }} />
+            <Skeleton variant="rectangular" height={16} sx={{ mb: 1 }} />
+            <Skeleton variant="rectangular" height={16} sx={{ mb: 1 }} />
+            <Skeleton variant="rectangular" height={16} sx={{ mb: 1 }} />
+          </Box>
         </Container>
+      </PageWrap>
     );
+  }
+
+  if (error) {
+    return (
+      <PageWrap>
+        <Container maxWidth="md">
+          <CssBaseline />
+          <Box sx={{ py: 6 }}>
+            <Typography variant="h6" color="error">
+              {error}
+            </Typography>
+          </Box>
+        </Container>
+      </PageWrap>
+    );
+  }
+
+  if (!post) {
+    return null;
+  }
+
+  const title = post.title || 'Untitled';
+  const excerpt = post.excerpt || '';
+  const image =
+    post.image && typeof post.image === 'string' && post.image.length
+      ? post.image
+      : post.cover_image || post.thumbnail || 'https://via.placeholder.com/1200x800?text=Post+Image';
+  const authorName = post.author?.username || post.author_name || 'Admin';
+  const authorAvatar = post.author?.avatar || post.author_avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(authorName)}`;
+  const createdAt = post.created_at ? new Date(post.created_at).toLocaleDateString() : '';
+
+  return (
+    <PageWrap>
+      <Container maxWidth="md">
+        <CssBaseline />
+        <PostCard maxWidth="md">
+          <Hero>
+            <HeroImg src={image} alt={title} />
+            <HeroOverlay />
+          </Hero>
+
+          <Box sx={{ mt: 3 }}>
+            <Typography variant="h4" sx={{ fontWeight: 800, color: '#0f172a' }}>
+              {title}
+            </Typography>
+            {excerpt && (
+              <Typography variant="subtitle1" sx={{ color: '#475569', mt: 1 }}>
+                {excerpt}
+              </Typography>
+            )}
+
+            <MetaRow direction="row" alignItems="center" justifyContent="space-between">
+              <Stack direction="row" spacing={2} alignItems="center">
+                <AuthorAvatar src={authorAvatar} />
+                <Box>
+                  <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                    {authorName}
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: '#94a3b8' }}>
+                    {createdAt}
+                  </Typography>
+                </Box>
+              </Stack>
+
+              <Stack direction="row" spacing={1} alignItems="center">
+                {post.category && (
+                  <Chip label={post.category.name || post.category} color="primary" variant="outlined" />
+                )}
+                <Button
+                  size="small"
+                  variant="contained"
+                  href="#comments"
+                  sx={{ textTransform: 'none', borderRadius: 2 }}
+                >
+                  Comment
+                </Button>
+              </Stack>
+            </MetaRow>
+
+            <Divider sx={{ my: 3 }} />
+
+            <Box sx={{ color: '#111827', lineHeight: 1.8 }}>
+              {post.content ? (
+                <div dangerouslySetInnerHTML={{ __html: post.content }} />
+              ) : (
+                <Typography variant="body1" sx={{ color: '#475569' }}>
+                  No content available.
+                </Typography>
+              )}
+            </Box>
+
+            {/* Footer actions */}
+            <Box sx={{ mt: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Stack direction="row" spacing={1}>
+                <Button size="small" variant="outlined" sx={{ textTransform: 'none' }}>
+                  Share
+                </Button>
+                <Button size="small" variant="outlined" sx={{ textTransform: 'none' }}>
+                  Bookmark
+                </Button>
+              </Stack>
+
+              <Typography variant="caption" sx={{ color: '#94a3b8' }}>
+                {post.read_time ? `${post.read_time} min read` : ''}
+              </Typography>
+            </Box>
+          </Box>
+        </PostCard>
+      </Container>
+    </PageWrap>
+  );
 }
+// ...existing code...
+
+
+
+// import React, { useState, useEffect } from 'react';
+// import axiosInstance from '../../axios';
+// import { useParams } from 'react-router-dom';
+// //MaterialUI
+// import Container from '@mui/material/Container';
+// import CssBaseline from '@mui/material/CssBaseline';
+// import {Typography} from '@mui/material';
+
+
+
+
+// export default function SinglePost() {
+//     const { slug } = useParams();
+//     // const classes = useStyles();
+
+//     const [data, setData] = useState({
+//         posts: [],
+//     });
+
+//     useEffect(() => {
+//         axiosInstance.get('post/' + slug).then((res) => {
+//             setData({
+//                 posts: res.data,
+//             });
+//             console.log(res.data);
+//         });
+//     }, [setData]);
+
+//     return (
+//         <Container component="main" maxWidth="md">
+//             <CssBaseline />
+//             <div > </div>{' '}
+//             <div >
+//                 <Container maxWidth="sm">
+//                     <Typography
+//                         component="h1"
+//                         variant="h2"
+//                         align="center"
+//                         color="textPrimary"
+//                         gutterBottom
+//                     >
+//                         {data.posts.title}{' '}
+//                     </Typography>{' '}
+//                     <Typography
+//                         variant="h5"
+//                         align="center"
+//                         color="textSecondary"
+//                         paragraph='true'
+//                     >
+//                         {data.posts.excerpt}{' '}
+//                     </Typography>{' '}
+//                 </Container>{' '}
+//             </div>{' '}
+//         </Container>
+//     );
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
