@@ -17,7 +17,8 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 export default function Login() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ email: '', password: '' });
-
+  const [error, setError] = useState('');
+  
   const handleChange = (e) => {
     setFormData((s) => ({ ...s, [e.target.name]: e.target.value }));
   };
@@ -93,12 +94,12 @@ export default function Login() {
             Sign In
           </Button>
           <Grid container>
-            <Grid item xs>
+            <Grid item xs='true'>
               <Link href="#" variant="body2">
                 Forgot password?
               </Link>
             </Grid>
-            <Grid item>
+            <Grid item='true'>
               <Link href="/register" variant="body2">
                 {"Don't have an account? Sign Up"}
               </Link>
