@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axiosInstance from '../../axios';
+import axiosInstance from '../../axios/login';
 import { useNavigate } from 'react-router-dom';
 import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
@@ -26,14 +26,18 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axiosInstance.post('token/', {
-        email: formData.email,
+      const res = await axiosInstance.post('auth/token/', {
+        username: formData.email,
         password: formData.password,
+        "grant_type": "password",
+        "client_id": "",
+        "client_secret": ''
       });
-      localStorage.setItem('access_token', res.data.access);
-      localStorage.setItem('refresh_token', res.data.refresh);
-      axiosInstance.defaults.headers['Authorization'] = 'JWT ' + res.data.access;
+      console.log(res.data)
+      localStorage.setItem('access_token', res.data.access_token);
+      localStorage.setItem('refresh_token', res.data.refresh_token);
       navigate('/');
+      window.location.reload();
     } catch (err) {
       console.error(err);
     }
