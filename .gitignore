@@ -12,6 +12,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+
 pip-log.txt
 pip-delete-this-directory.txt
 
@@ -46,6 +47,9 @@ yarn-error.log*
 *.env
 .env.*
 !.env.example
+.env
+ReactBlog/.env
+DjangoBlog/.env
 
 # =========================
 # Frontend + Backend secrets

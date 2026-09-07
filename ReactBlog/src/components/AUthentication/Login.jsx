@@ -21,21 +21,27 @@ export default function Login() {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
 
+  const facebookAppId = import.meta.env.VITE_FACEBOOK_APP_ID || '';
+  const clientId = import.meta.env.VITE_CLIENT_ID || '';
+  const clientSecret = import.meta.env.VITE_CLIENT_SECRET || '';
+  const grantType = import.meta.env.VITE_GRANT_TYPE || 'password';
+
   const handleChange = (e) => {
     setFormData((s) => ({ ...s, [e.target.name]: e.target.value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     try {
       const res = await axiosInstance.post('auth/token/', {
         username: formData.email,
         password: formData.password,
-        grant_type: 'password',
-        client_id: '8UoT6yLQ1fIEcxeKrkG6udvZw0zL6ygqJDeOEl5u',
-        client_secret:
-          'y2gLGqDt8H1eznpkwqP1ISLPU97YBdKZKKNQMs3PgDjnSAzQtVGm9qs0wN3de5zLgdcz5sIwntPFyvf1v3IZIdwnbTbYGuhwHtomkQ3sjd8ssZTWRsEuVR1ahJdYwuOt',
+        grant_type: grantType,
+        client_id: clientId,
+        client_secret: clientSecret,
       });
+
       localStorage.setItem('access_token', res.data.access_token);
       localStorage.setItem('refresh_token', res.data.refresh_token);
       navigate('/');
@@ -45,9 +51,11 @@ export default function Login() {
       setError('Login failed. Please check your credentials.');
     }
   };
+
   const responseFacebook = async (response) => {
-      FacebookSocialLogin(response.accessToken);
-    };
+    if (!response?.accessToken) return;
+    FacebookSocialLogin(response.accessToken);
+  };
 
   return (
     <Container component="main" maxWidth="xs">
@@ -110,26 +118,35 @@ export default function Login() {
           >
             Sign In
           </Button>
-  {/* <FacebookLogin
-  appId="YOUR_FACEBOOK_APP_ID"
-  onSuccess={(response) => {
-    console.log('Login Success!', response);
-    responseFacebook(response)
-  }}
-  onFail={(error) => {
-    console.log('Login Failed!', error);
-  }}
-  render={({ onClick }) => (
-    <Button
-      fullWidth
-      variant="outlined"
-      onClick={onClick}
-      sx={{ mb: 2, borderColor: '#1877F2', color: '#1877F2' }}
-    >
-      Login with Facebook
-    </Button>
-  )}
-/> */}
+
+          {/* <FacebookLogin
+            appId={facebookAppId}
+            onSuccess={(response) => {
+              console.log('Login Success!', response);
+              responseFacebook(response);
+            }}
+            onFail={(error) => {
+              console.log('Login Failed!', error);
+            }}
+            render={({ onClick }) => (
+              <Button
+                fullWidth
+                variant="outlined"
+                onClick={onClick}
+                sx={{
+                  mb: 2,
+                  borderColor: '#1877F2',
+                  color: '#1877F2',
+                  '&:hover': {
+                    borderColor: '#1877F2',
+                    backgroundColor: '#e8f0fe',
+                  },
+                }}
+              >
+                Login with Facebook
+              </Button>
+            )}
+          /> */}
 
           <Grid container spacing={2} sx={{ mt: 1 }}>
             <Grid item xs={12}>
@@ -148,8 +165,6 @@ export default function Login() {
     </Container>
   );
 }
-
-
 
 
 
