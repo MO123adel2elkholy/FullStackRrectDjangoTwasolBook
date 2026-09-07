@@ -177,16 +177,19 @@ AUTHENTICATION_BACKENDS = (
 )
 
 # Facebook configuration
+SOCIAL_AUTH_FACEBOOK_KEY = ('SOCIAL_AUTH_FACEBOOK_KEY')
+SOCIAL_AUTH_FACEBOOK_SECRET = ('SOCIAL_AUTH_FACEBOOK_SECRET')
+SOCIAL_AUTH_LOGIN_REDIRECT_URL = 'http://localhost:5137/'
 
-SOCIAL_AUTH_LOGIN_REDIRECT_URL = 'http://localhost:3000/'
-
-# Define SOCIAL_AUTH_FACEBOOK_SCOPE to get extra permissions from Facebook.
+# Define SOCIAL_AUTH_FACEBOOK_SCOPE to get extra permiss37ions from Facebook.
 # Email is not sent by default, to get it, you must request the email permission.
 SOCIAL_AUTH_FACEBOOK_SCOPE = ['email']
 SOCIAL_AUTH_FACEBOOK_PROFILE_EXTRA_PARAMS = {
     'fields': 'id, name, email'
 }
 SOCIAL_AUTH_USER_FIELDS = ['email', 'username', 'first_name', 'password']
+
+
 
 AUTH_USER_MODEL = "users.NewUser"
 
