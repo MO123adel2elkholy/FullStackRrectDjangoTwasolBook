@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from rest_framework.generics import (  RetrieveAPIView , ListAPIView)
-from .serializers import PostSerializer , readPostSerializer
+from .serializers import PostSerializer , readPostSerializer ,CategorySerializer
 from blog.models import  Post , Category
 from rest_framework.permissions import IsAuthenticated  , IsAuthenticatedOrReadOnly
 from .pemissions import PostChangPermission
@@ -12,11 +12,17 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.parsers import MultiPartParser, FormParser
+
 # Display Posts
 
 # from django_filters.conf import settings
 
 
+
+class CategoryList(generics.ListAPIView):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes =[IsAuthenticatedOrReadOnly]
 
 
 

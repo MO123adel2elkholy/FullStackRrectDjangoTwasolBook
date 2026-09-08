@@ -1,8 +1,7 @@
-// ...existing code...
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../../axios';
 import * as React from 'react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box,
   Button,
@@ -12,6 +11,11 @@ import {
   TextField,
   CssBaseline,
   Alert,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  CircularProgress,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
@@ -19,11 +23,11 @@ import CreateIcon from '@mui/icons-material/Create';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 const FormCard = styled(Box)(({ theme }) => ({
-  backgroundColor: '#ffffff',
-  border: '1px solid #e5e7eb',
-  borderRadius: 16,
-  padding: theme.spacing(3),
-  boxShadow: '0 4px 18px rgba(15, 23, 42, 0.06)',
+  backgroundColor: '#fff',
+  borderRadius: 20,
+  boxShadow: '0 14px 32px rgba(15, 23, 42, 0.08)',
+  border: '1px solid rgba(148, 163, 184, 0.2)',
+  padding: theme.spacing(4),
 }));
 
 const HeaderBox = styled(Box)(({ theme }) => ({
@@ -31,75 +35,65 @@ const HeaderBox = styled(Box)(({ theme }) => ({
   alignItems: 'center',
   gap: theme.spacing(1.5),
   marginBottom: theme.spacing(3),
-  paddingBottom: theme.spacing(2),
-  borderBottom: '1px solid #e5e7eb',
 }));
 
 const StyledTextField = styled(TextField)(({ theme }) => ({
   '& .MuiOutlinedInput-root': {
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    '& fieldset': {
-      borderColor: '#d1d5db',
-    },
+    borderRadius: 14,
+    backgroundColor: '#f8fafc',
+    transition: 'all 0.2s ease',
     '&:hover fieldset': {
-      borderColor: '#94a3b8',
+      borderColor: '#93c5fd',
     },
     '&.Mui-focused fieldset': {
       borderColor: '#1976d2',
+      borderWidth: 2,
     },
   },
   '& .MuiInputBase-input': {
-    color: '#111827',
-  },
-  '& .MuiInputLabel-root': {
-    color: '#374151',
-  },
-}));
-
-const SubmitButton = styled(Button)(({ theme }) => ({
-  backgroundColor: '#1976d2',
-  color: '#ffffff',
-  fontWeight: 600,
-  textTransform: 'none',
-  borderRadius: 10,
-  padding: theme.spacing(1.5, 3),
-  '&:hover': {
-    backgroundColor: '#1565c0',
-  },
-  '&:disabled': {
-    backgroundColor: '#9ca3af',
-    color: '#e5e7eb',
-  },
-}));
-
-const CancelButton = styled(Button)(({ theme }) => ({
-  color: '#374151',
-  borderColor: '#cbd5e1',
-  textTransform: 'none',
-  borderRadius: 10,
-  padding: theme.spacing(1.5, 3),
-  '&:hover': {
-    backgroundColor: '#f3f4f6',
-    borderColor: '#94a3b8',
+    color: '#0f172a',
+    fontSize: '0.98rem',
   },
 }));
 
 const ImageUploadBox = styled(Box)(({ theme }) => ({
-  border: '2px dashed #d1d5db',
-  borderRadius: 12,
-  padding: theme.spacing(3),
-  textAlign: 'center',
-  backgroundColor: '#f8fafc',
-  minHeight: 190,
+  border: '2px dashed #cbd5e1',
+  borderRadius: 18,
+  background: 'linear-gradient(135deg, rgba(59,130,246,0.04), rgba(59,130,246,0.08))',
+  minHeight: 220,
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  cursor: 'pointer',
+  padding: theme.spacing(3),
   transition: 'all 0.2s ease',
   '&:hover': {
+    borderColor: '#60a5fa',
+    background: 'linear-gradient(135deg, rgba(59,130,246,0.08), rgba(59,130,246,0.12))',
+  },
+}));
+
+const SubmitButton = styled(Button)(({ theme }) => ({
+  background: 'linear-gradient(135deg, #1976d2, #1565c0)',
+  borderRadius: 12,
+  textTransform: 'none',
+  fontWeight: 700,
+  padding: '10px 22px',
+  boxShadow: '0 8px 20px rgba(25,118,210,0.25)',
+  '&:hover': {
+    background: 'linear-gradient(135deg, #1565c0, #0d47a1)',
+  },
+}));
+
+const CancelButton = styled(Button)(({ theme }) => ({
+  borderRadius: 12,
+  textTransform: 'none',
+  fontWeight: 600,
+  padding: '10px 22px',
+  borderColor: '#cbd5e1',
+  color: '#334155',
+  '&:hover': {
     borderColor: '#94a3b8',
-    backgroundColor: '#f1f5f9',
+    backgroundColor: 'rgba(148,163,184,0.06)',
   },
 }));
 
@@ -130,6 +124,7 @@ export default function Create() {
     slug: '',
     excerpt: '',
     content: '',
+    category: '',
   });
 
   const [postData, updateFormData] = useState(initialFormData);
@@ -139,17 +134,44 @@ export default function Create() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
+  const [categories, setCategories] = useState([]);
+  const [loadingCategories, setLoadingCategories] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const loadCategories = async () => {
+      setLoadingCategories(true);
+      try {
+        const res = await axiosInstance.get('category/');
+        if (!mounted) return;
+        setCategories(res.data);
+      } catch (err) {
+        console.error('Failed loading categories', err);
+      } finally {
+        if (mounted) setLoadingCategories(false);
+      }
+    };
+
+    loadCategories();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   const handleChange = (e) => {
     const { name, value, files } = e.target;
 
     if (name === 'image') {
       if (files && files[0]) {
         const file = files[0];
-        // optional size check (10MB)
+
         if (file.size > 10 * 1024 * 1024) {
           setError('Image must be <= 10MB');
           return;
         }
+
         setPostImage(file);
         const reader = new FileReader();
         reader.onloadend = () => {
@@ -157,16 +179,16 @@ export default function Create() {
         };
         reader.readAsDataURL(file);
       }
+
       setError('');
       return;
     }
 
-    // Avoid trimming on every keystroke (prevents caret jumps).
     if (name === 'title') {
       updateFormData((prev) => ({
         ...prev,
         title: value,
-        slug: slugify(value), // auto-generate slug from raw title
+        slug: slugify(value),
       }));
     } else {
       updateFormData((prev) => ({
@@ -181,18 +203,17 @@ export default function Create() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Trim and validate before sending
     const title = (postData.title || '').trim();
     const slug = (postData.slug || '').trim() || slugify(title);
     const excerpt = (postData.excerpt || '').trim();
     const content = (postData.content || '').trim();
+    const category = (postData.category || '').toString().trim();
 
-    if (!title || !slug || !excerpt || !content) {
-      setError('All fields are required');
+    if (!title || !slug || !excerpt || !content || !category) {
+      setError('All fields are required (including category)');
       return;
     }
 
-    // optional image size check again
     if (postImage && postImage.size > 10 * 1024 * 1024) {
       setError('Image must be <= 10MB');
       return;
@@ -206,34 +227,37 @@ export default function Create() {
       const formData = new FormData();
       formData.append('title', title);
       formData.append('slug', slug);
-      formData.append('author', 1); // keep if backend expects it; otherwise remove
       formData.append('excerpt', excerpt);
       formData.append('content', content);
+      formData.append('category', category);
+      formData.append('author', localStorage.getItem('user_id') || '1');
 
       if (postImage) {
         formData.append('image', postImage);
       }
 
-      // Do NOT set Content-Type manually so browser can add the boundary header
-      const res = await axiosInstance.post('post/admin/create/', formData);
+      await axiosInstance.post('post/admin/create/', formData);
+
       setSuccess('Post created successfully!');
-      // small delay to show success then redirect
+
       setTimeout(() => {
         setSubmitting(false);
         navigate('/admin/');
-      }, 800);
+      }, 700);
     } catch (err) {
       console.error('Error creating post:', err);
-      setError(err.response?.data?.detail || (err.response?.data && JSON.stringify(err.response.data)) || 'Failed to create post. Please try again.');
+
+      setError(
+        err.response?.data?.detail ||
+          (err.response?.data && JSON.stringify(err.response.data)) ||
+          'Failed to create post. Please try again.'
+      );
+
       setSubmitting(false);
-      console.log(err.status+10)
-      if (err.status==401){
-        console.log('you arnt authenticated  now')
-        setError( JSON.stringify('You are not authenticated  please login ') )
+
+      if (err.response?.status === 401) {
         navigate('/login/');
-
       }
-
     }
   };
 
@@ -262,7 +286,7 @@ export default function Create() {
 
         <Box component="form" noValidate onSubmit={handleSubmit}>
           <Grid container spacing={3}>
-            <Grid  item="true" xs={12}>
+            <Grid item xs={12}>
               <Typography variant="subtitle2" sx={{ color: '#374151', mb: 1 }}>
                 Post Title *
               </Typography>
@@ -321,6 +345,38 @@ export default function Create() {
                 multiline
                 rows={10}
               />
+            </Grid>
+
+            <Grid item xs={12} sm={6}>
+              <Typography variant="subtitle2" sx={{ color: '#374151', mb: 1 }}>
+                Category *
+              </Typography>
+              <FormControl fullWidth>
+                <InputLabel id="category-label">Select category</InputLabel>
+                <Select
+                  labelId="category-label"
+                  id="category"
+                  name="category"
+                  value={postData.category}
+                  label="Select category"
+                  onChange={handleChange}
+                >
+                  {loadingCategories ? (
+                    <MenuItem value="">
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <CircularProgress size={18} />
+                        <Typography variant="body2">Loading...</Typography>
+                      </Box>
+                    </MenuItem>
+                  ) : (
+                    categories.map((cat) => (
+                      <MenuItem key={cat.id} value={cat.id}>
+                        {cat.name || cat.title || cat.slug || `Category ${cat.id}`}
+                      </MenuItem>
+                    ))
+                  )}
+                </Select>
+              </FormControl>
             </Grid>
 
             <Grid item xs={12}>
@@ -395,4 +451,3 @@ export default function Create() {
     </Container>
   );
 }
-// ...existing code...
