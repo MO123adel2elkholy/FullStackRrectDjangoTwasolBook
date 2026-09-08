@@ -21,6 +21,7 @@ import { styled } from '@mui/material/styles';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 import CreateIcon from '@mui/icons-material/Create';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import slugify from '../../utils/slgify';
 
 const FormCard = styled(Box)(({ theme }) => ({
   backgroundColor: '#fff',
@@ -99,25 +100,7 @@ const CancelButton = styled(Button)(({ theme }) => ({
 
 export default function Create() {
   const navigate = useNavigate();
-
-  function slugify(string) {
-    const a =
-      'àáâäæãåāăąçćčđďèéêëēėęěğǵḧîïíīįìłḿñńǹňôöòóœøōõőṕŕřßśšşșťțûüùúūǘůűųẃẍÿýžźż·/_,:;';
-    const b =
-      'aaaaaaaaaacccddeeeeeeeegghiiiiiilmnnnnoooooooooprrsssssttuuuuuuuuuwxyyzzz------';
-    const p = new RegExp(a.split('').join('|'), 'g');
-
-    return string
-      .toString()
-      .toLowerCase()
-      .replace(/\s+/g, '-')
-      .replace(p, (c) => b.charAt(a.indexOf(c)))
-      .replace(/&/g, '-and-')
-      .replace(/[^\w\-]+/g, '')
-      .replace(/\-\-+/g, '-')
-      .replace(/^-+/, '')
-      .replace(/-+$/, '');
-  }
+  
 
   const initialFormData = Object.freeze({
     title: '',
@@ -133,9 +116,32 @@ export default function Create() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-
   const [categories, setCategories] = useState([]);
   const [loadingCategories, setLoadingCategories] = useState(false);
+  const [currentuser, setUser] = useState(null);
+
+
+    useEffect(() => {
+    let mounted = true;
+
+    const loadCurrentUser= async () => {
+      try {
+        const res = await axiosInstance.get('user/current/');
+        if (!mounted) return;
+        setUser(res.data);
+        console.log(res.data.id)
+      } catch (err) {
+        console.error('Failed loading Current user data ', err);
+      } 
+    };
+
+    loadCurrentUser();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
 
   useEffect(() => {
     let mounted = true;
@@ -159,6 +165,10 @@ export default function Create() {
       mounted = false;
     };
   }, []);
+
+
+
+
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
@@ -230,7 +240,7 @@ export default function Create() {
       formData.append('excerpt', excerpt);
       formData.append('content', content);
       formData.append('category', category);
-      formData.append('author', localStorage.getItem('user_id') || '1');
+      formData.append('author', currentuser?.id || '');
 
       if (postImage) {
         formData.append('image', postImage);
